@@ -47,6 +47,24 @@ class Dimensions:
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : Global Methods ++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
+def darkmode():
+    palette = QtGui.QPalette()
+    palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
+    palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
+    palette.setColor(QtGui.QPalette.Base, QtGui.QColor(25, 25, 25))
+    palette.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
+    palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.black)
+    palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
+    palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
+    palette.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
+    palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
+    palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
+    palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
+    palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
+    palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
+    app.setPalette(palette)
+
+
 def convert2beauty(number):
     num = str(int(number))
     if len(num) > 3:
@@ -60,10 +78,6 @@ def convert2beauty(number):
     front = z[0]
     front = f'{int(z[0]):,}'
     return front+'.'+end+size
-
-
-def handler(msg_type, msg_log_context, msg_string):
-    pass
 
 
 def is_number(eingabe: str):
@@ -133,7 +147,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.last_dir = ''
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Begin / Menu ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-        self.setWindowTitle("WallpaperCutter")
+        self.setWindowTitle("wallpaperCutter  -  ©2020 Alexander Mielke")
         self.setGeometry(300, 100, 1312, 810)
         self.setMouseTracking(True)
 
@@ -147,6 +161,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.original.setAlignment(QtCore.Qt.AlignCenter)
         self.original.setObjectName("original")
         self.original.setMouseTracking(True)
+        self.original.setScaledContents(True)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Groupbox: Wallpaper +++++++++++++++++++++++++++++++++++++++++++++++++++ #
         self.Box_wallpaper = QtWidgets.QGroupBox(self)
@@ -157,6 +172,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.wallpaper.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.wallpaper.setAlignment(QtCore.Qt.AlignCenter)
         self.wallpaper.setObjectName("wallpaper")
+        self.wallpaper.setScaledContents(True)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Groupbox: Information +++++++++++++++++++++++++++++++++++++++++++++++++ #
         self.Box_info = QtWidgets.QGroupBox(self)
@@ -272,10 +288,12 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.label_recSize = QtWidgets.QLabel(self.Box_options)
         self.label_recSize.setGeometry(QtCore.QRect(480, 20, 100, 41))
         self.label_recSize.setObjectName("label_recSize")
+        self.label_instr = QtWidgets.QLabel(self.Box_options)
+        self.label_instr.setGeometry(QtCore.QRect(465, 80, 120, 100))
+        self.label_instr.setObjectName("label_instr")
         self.label_recSizeValue = QtWidgets.QLabel(self.Box_options)
-        self.label_recSizeValue.setGeometry(QtCore.QRect(480, 50, 111, 41))
+        self.label_recSizeValue.setGeometry(QtCore.QRect(510, 50, 111, 41))
         self.label_recSizeValue.setObjectName("label_recSizeValue")
-
         self.Button_refresh = QtWidgets.QPushButton(self.Box_options)
         self.Button_refresh.setGeometry(QtCore.QRect(480, 240, 141, 32))
         self.Button_refresh.setObjectName("Button_refresh")
@@ -287,6 +305,9 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.Button_saveWallpaper = QtWidgets.QPushButton(self)
         self.Button_saveWallpaper.setGeometry(QtCore.QRect(160, 770, 141, 32))
         self.Button_saveWallpaper.setObjectName("Button_saveWallpaper")
+        self.Button_about = QtWidgets.QPushButton(self)
+        self.Button_about.setGeometry(QtCore.QRect(585, 770, 141, 32))
+        self.Button_about.setObjectName("Button_about")
         self.Button_quit = QtWidgets.QPushButton(self)
         self.Button_quit.setGeometry(QtCore.QRect(1160, 770, 141, 32))
         self.Button_quit.setObjectName("Button_quit")
@@ -300,11 +321,12 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.Button_open.setText("Open")
         self.Button_refresh.setText("Refresh")
         self.Button_saveWallpaper.setText("Save")
+        self.Button_about.setText("About")
         self.Button_quit.setText("Quit")
         self.Box_options.setTitle("Settings")
         self.radio_fullHD.setText("FullHD - 16:9 - 1920x1080px")
         self.radio_dual.setText("Dual Monitor - FullHD - 32:9 - 3840x1080px")
-        self.radio_custom.setText("Custom Size")
+        self.radio_custom.setText("Custom size")
         self.label_output.setText("Output format :")
 
         self.label_mon1.setText("Screen Diagonal")
@@ -315,10 +337,10 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.label_gap.setText("Screen Gap")
         self.label_ar.setText("Mon. Resolution")
         self.checkBox_dualMonitor.setText("Dual Monitor")
-        self.label_recSize.setText("Clipping Size")
-        # self.size_monitors.setText('59,7')
-        # self.size_gap.setText('4,0')
-        # self.resolution.setText('1920x1080')
+        self.label_recSize.setText("Clipping size")
+        self.label_instr.setWordWrap(True)
+        self.label_instr.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_instr.setText('Click & hold right mouse button to move selection')
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Signals & Slots +++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
@@ -326,7 +348,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.Button_saveWallpaper.clicked.connect(self.save_pic)
         self.Button_open.clicked.connect(self.open_pic)
         self.Button_refresh.clicked.connect(self.refresh)
-
+        self.Button_about.clicked.connect(self.showAbout)
         self.rec_size.valueChanged.connect(self.show_rectangles)
 
         self.resolution.textChanged.connect(self.refresh)
@@ -365,7 +387,10 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.rec = Dimensions()
         self.last_dir = ''
 
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : File Dialogs ++++++++++++++++++++++++++++++++++++++++++++++++ #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : File Dialogs /About +++++++++++++++++++++++++++++++++++++++++ #
+
+    def showAbout(self):
+        about.show()
 
     def open_pic(self):
         dir = self.last_dir if self.last_dir != '' else str(Path.cwd())
@@ -539,9 +564,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : Calculations ++++++++++++++++++++++++++++++++++++++++++++++++ #
 
     def calc_dual(self):
-
         success = False
-
         if self.radio_dual.isChecked():
             self.dualx = 1920
             self.dualy = 1080
@@ -552,7 +575,6 @@ class WallpaperCutter(QtWidgets.QMainWindow):
                 self.dualgpx = int((self.dualx / a)*gap)
                 self.dualspan = self.dualx*2 + self.dualgpx
                 success = True
-
         if self.radio_custom.isChecked() and self.checkBox_dualMonitor.isChecked():
             check1, self.dualx, self.dualy = is_resolution(self.resolution.text())
             check2, d = is_number(self.size_monitors.text())
@@ -571,18 +593,15 @@ class WallpaperCutter(QtWidgets.QMainWindow):
             self.max_width = 1920
             self.max_height = 1080
             success = True
-
         if self.radio_dual.isChecked() and self.calc_dual():
             self.max_width = self.dualspan
             self.max_height = self.dualy
             success = True
-
         check, w, h = is_resolution(self.custom.text())
         if self.radio_custom.isChecked() and check:
             self.max_width = w
             self.max_height = h
             success = True
-
         if self.radio_custom.isChecked() and self.calc_dual():
             self.max_width = self.dualspan
             self.max_height = self.dualy
@@ -679,7 +698,6 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         starty = 30
         lw = 620
         lh = 410
-
         if self.radio_fullHD.isChecked():
             self.new_pic = self.pixmap.copy(self.rec.startx, self.rec.starty, self.rec.width, self.rec.height)
             self.new_pic = self.new_pic.scaled(self.max_width, self.max_height, aspectRatioMode=QtCore.Qt.IgnoreAspectRatio, transformMode=QtCore.Qt.SmoothTransformation)
@@ -814,10 +832,10 @@ class WallpaperCutter(QtWidgets.QMainWindow):
             infolist.append(['Original File', ''])
             infolist.append(['Filename', str(Path(self.image).name)])
             infolist.append(['Resolution', str(self.pixmap.width())+' x '+str(self.pixmap.height())+' x '+str(self.pixmap.depth())+'bit'])
-            infolist.append(['Logical/Physical DPI', str(self.pixmap.logicalDpiX())+'x'+str(self.pixmap.logicalDpiY())+' / '+str(self.pixmap.physicalDpiX())+'x'+str(self.pixmap.physicalDpiY())])
+            infolist.append(['Logical / Physical DPI', str(self.pixmap.logicalDpiX())+'x'+str(self.pixmap.logicalDpiY())+' / '+str(self.pixmap.physicalDpiX())+'x'+str(self.pixmap.physicalDpiY())])
             ram = convert2beauty(self.pixmap.width()*self.pixmap.height()*self.pixmap.depth()/8/1024)
             fmem = convert2beauty(Path(self.image).stat().st_size/1024)
-            infolist.append(['Size Memory/File', ram+' / '+fmem])
+            infolist.append(['Size in memory / file', ram+' / '+fmem])
 
             check_d = self.checkBox_dualMonitor.isChecked()
             check0, i, j = is_resolution(self.custom.text())
@@ -829,13 +847,13 @@ class WallpaperCutter(QtWidgets.QMainWindow):
             if self.radio_fullHD.isChecked() or (self.radio_custom.isChecked() and check0 and not check_d):
                 infolist.append(['Clip', ''])
                 scale = self.rec_size.value()
-                infolist.append(['Scaling', str(scale)+' %']) if scale > 99 else infolist.append(['Scaling', str(scale)+' %  (Quality Loss)'])
+                infolist.append(['Scaling', str(scale)+' %']) if scale > 99 else infolist.append(['Scaling', str(scale)+' %  (Quality loss)'])
                 infolist.append(['Resolution', str(self.rec.width)+' x '+str(self.rec.height)+' px'])
 
             elif (self.radio_dual.isChecked() and check2 and check3) or (self.radio_custom.isChecked() and check_d and check1 and check2 and check3):
                 infolist.append(['Clip', ''])
                 scale = self.rec_size.value()
-                infolist.append(['Scaling', str(scale)+' %']) if scale > 99 else infolist.append(['Scaling', str(scale)+' %  (Quality Loss)'])
+                infolist.append(['Scaling', str(scale)+' %']) if scale > 99 else infolist.append(['Scaling', str(scale)+' %  (Quality loss)'])
                 width = int((self.rec.width/self.dualspan)*self.dualx)
                 infolist.append(['Resolution', ('2 x '+str(width)+' x '+str(self.rec.height)+' px')])
                 gap = self.rec.width-2*width
@@ -845,10 +863,10 @@ class WallpaperCutter(QtWidgets.QMainWindow):
             if self.radio_fullHD.isChecked() or (self.radio_custom.isChecked() and self.custom.text != '' and not self.checkBox_dualMonitor.isChecked()) or self.calc_dual():
                 infolist.append(['Wallpaper', ''])
                 infolist.append(['Resolution', str(self.new_pic.width())+' x '+str(self.new_pic.height())+' x '+str(self.new_pic.depth())+'bit'])
-                infolist.append(['Logical/Physical DPI', str(self.new_pic.logicalDpiX())+'x'+str(self.new_pic.logicalDpiY()) +
+                infolist.append(['Logical / Physical DPI', str(self.new_pic.logicalDpiX())+'x'+str(self.new_pic.logicalDpiY()) +
                                  ' / '+str(self.new_pic.physicalDpiX())+'x'+str(self.new_pic.physicalDpiY())])
                 ram = convert2beauty(self.new_pic.width()*self.new_pic.height()*self.new_pic.depth()/8/1024)
-                infolist.append(['Size in Memory', ram])
+                infolist.append(['Size in memory', ram])
 
         return infolist
 
@@ -870,12 +888,62 @@ class WallpaperCutter(QtWidgets.QMainWindow):
                 self.information.setItem(index, 0, QtWidgets.QTableWidgetItem(line[0]))
                 self.information.setItem(index, 1, QtWidgets.QTableWidgetItem(line[1]))
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ About Dialog ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+
+class AboutDialog(QtWidgets.QDialog):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setup()
+
+    def setup(self):
+        self.setObjectName("AboutDialog")
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.resize(570, 458)
+        self.setModal(True)
+        self.buttonBox = QtWidgets.QDialogButtonBox(self)
+        self.buttonBox.setGeometry(QtCore.QRect(50, 420, 471, 32))
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setCenterButtons(True)
+        self.buttonBox.setObjectName("buttonBox")
+        self.label = QtWidgets.QLabel(self)
+        self.label.setGeometry(QtCore.QRect(100, 10, 371, 91))
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(28)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label.setFont(font)
+        self.label.setStyleSheet("color: darkRed")
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setObjectName("label")
+        self.textBrowser = QtWidgets.QTextBrowser(self)
+        self.textBrowser.setGeometry(QtCore.QRect(10, 110, 551, 301))
+        self.textBrowser.setObjectName("textBrowser")
+        self.textBrowser.setOpenExternalLinks(True)
+        self.textBrowser.setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+                                 "<html><head><meta name=\"qrichtext\" content=\"1\" /></head><body>\n"
+                                 "<p style=\" text-align: center;font-size:16px;\"><br />A tool for trimming images to desktop <br /> wallpapers for single or dual monitors.</p>\n"
+                                 "<p style=\" text-align: center;font-size:14px;\">Written in Python 3.8.6 <br />with PyQt5 (5.15.1)<br />as only 3rd party module</p>\n"
+                                 "<p style=\" text-align: center;font-size:14px;\">Other modules used: sys, math, pathlib</p>\n"
+                                 "<p style=\" text-align: center;font-size:14px;\">(c) 2020 Alexander Mielke (<a href=\"mailto:alexandermielke@t-online.de\"><span style=\" text-decoration: underline; color:#2eb8e6;\">alexandermielke@t-online.de</span></a>)</p>\n"
+                                 "<p style=\" text-align: center;font-size:14px;\"><a href=\"https://github.com/AlexMielke/WallpaperCutter\"><span style=\" text-decoration: underline; color:#2eb8e6;\">GitHub-Repository</span></a></p>\n"
+                                 "<p style=\" text-align: center;font-size:12px;\">Licence MIT Licence (see Licence file)</p></body></html>")
+        self.setWindowTitle(QtCore.QCoreApplication.translate("self", "About"))
+        self.label.setText(QtCore.QCoreApplication.translate("self", "wallpaperCutter"))
+        self.buttonBox.accepted.connect(self.close)
+        QtCore.QMetaObject.connectSlotsByName(self)
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Main ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
-    # QtCore.qInstallMessageHandler(handler)
+    app.setStyle('Fusion')
+    darkmode()
     ui = WallpaperCutter()
+    about = AboutDialog()
 
     sys.exit(app.exec_())
