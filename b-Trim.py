@@ -584,7 +584,7 @@ class bTrim(QtWidgets.QMainWindow):
             img_format = str(Path(self.image).suffix).upper()
             img_format = img_format[1:]
             try:
-                #                self.new_pic.save(savename, img_format)
+                self.new_pic.save(savename, img_format)
                 self.workedList.append(self.image)
                 self.refresh_listview()
                 self.files.setCurrentRow(self.fileIndex)
