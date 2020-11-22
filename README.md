@@ -1,4 +1,4 @@
-# b-trim 1.0.3
+# b-Trim 1.0.3
 A tool for trimming images to desktop wallpapers for single or dual monitors.
 
 Written in Python 3.8.6 with PyQt5 (5.15.1) as only 3rd party module
