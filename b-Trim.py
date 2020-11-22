@@ -1,6 +1,6 @@
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 # +++++++                                                                                                                                      +++++++ #
-# +++++++  WallpaperCutter                                                                                                                     +++++++ #
+# +++++++  b-Trim 1.0.3                                                                                                                        +++++++ #
 # +++++++                                                                                                                                      +++++++ #
 # +++++++                                                                                                                                      +++++++ #
 # +++++++  MIT License                                                                                                                         +++++++ #
@@ -32,9 +32,9 @@
 # +++++++                                                                                                                                      +++++++ #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 import sys
-from PyQt5 import QtCore, QtGui, QtWidgets
 import math
 from pathlib import Path
+from PyQt5 import QtCore, QtGui, QtWidgets
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Global Variables / Classes ++++++++++++++++++++++++++++++++++++++++++++ #
 
 
@@ -43,6 +43,15 @@ class Dimensions:
     starty = 20
     width = 620
     height = 410
+
+
+class MyDirectories(QtWidgets.QFileSystemModel):
+
+    def headerData(self, section, orientation, role):
+        if section == 0 and role == QtCore.Qt.DisplayRole:
+            return "Folders"
+        else:
+            return super(QtWidgets.QFileSystemModel, self).headerData(section, orientation, role)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : Global Methods ++++++++++++++++++++++++++++++++++++++++++++++ #
 
@@ -128,7 +137,7 @@ def is_resolution(eingabe: str):
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ MainWindows +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
-class WallpaperCutter(QtWidgets.QMainWindow):
+class bTrim(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -145,10 +154,15 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.dim = Dimensions()
         self.rec = Dimensions()
         self.last_dir = ''
+        self.isAdvanced = False
+        self.fileIndex = -10
+        self.fileList = []
+        self.workedList = []
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Begin / Menu ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-        self.setWindowTitle("wallpaperCutter  -  ©2020 Alexander Mielke")
-        self.setGeometry(300, 100, 1312, 810)
+        self.setWindowTitle("b-Trim  -  ©2020 Alexander Mielke")
+        self.setGeometry(100, 100, 1312, 810)
         self.setMouseTracking(True)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Groupbox: Original ++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -298,32 +312,90 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.Button_refresh.setGeometry(QtCore.QRect(480, 240, 141, 32))
         self.Button_refresh.setObjectName("Button_refresh")
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Advanced +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+        self.Box_advanced = QtWidgets.QGroupBox(self)
+        self.Box_advanced.setGeometry(QtCore.QRect(10, 10, 490, 751))
+        self.Box_advanced.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.Box_advanced.setObjectName("Box_advanced")
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.files = QtWidgets.QListWidget(self.Box_advanced)
+        self.files.setGeometry(QtCore.QRect(10, 240, 470, 420))
+        self.files.setObjectName("listview")
+        self.files.setFont(font)
+        self.files.setStyleSheet("QListView::Item { height: 20px }")
+        path = QtCore.QDir.rootPath()
+        self.directories = QtWidgets.QTreeView(self.Box_advanced)
+        self.directories.setGeometry(QtCore.QRect(10, 30, 470, 200))
+        self.directories.setFont(font)
+        self.directories.setStyleSheet("QTreeView::Item { height: 18px }")
+        self.directories.header().setFont(font)
+        self.directories.setObjectName("treeview")
+        self.dirModel = MyDirectories()
+        self.dirModel.setRootPath(path)
+        self.dirModel.setFilter(QtCore.QDir.NoDotAndDotDot | QtCore.QDir.AllDirs)
+        self.directories.setModel(self.dirModel)
+        for i in range(1, self.directories.model().columnCount()):
+            self.directories.header().hideSection(i)
+        self.directories.setRootIndex(self.dirModel.index(path))
+
+        self.saveDir = QtWidgets.QLineEdit(self.Box_advanced)
+        self.saveDir.setGeometry(QtCore.QRect(10, 670, 340, 32))
+        self.saveDir.setObjectName("saveDir")
+        self.saveDir.setEnabled(False)
+        self.saveDir.setText('Same as original, or choose new folder →')
+        self.Button_openDir = QtWidgets.QPushButton(self.Box_advanced)
+        self.Button_openDir.setGeometry(QtCore.QRect(360, 670, 121, 32))
+        self.Button_openDir.setObjectName("Button_openDir")
+
+        self.Button_prev = QtWidgets.QPushButton(self.Box_advanced)
+        self.Button_prev.setGeometry(QtCore.QRect(10, 710, 90, 32))
+        self.Button_prev.setObjectName("Button_prev")
+        self.Button_fastSave = QtWidgets.QPushButton(self.Box_advanced)
+        self.Button_fastSave.setGeometry(QtCore.QRect(175, 710, 141, 32))
+        self.Button_fastSave.setObjectName("Button_fastSave")
+        self.Button_next = QtWidgets.QPushButton(self.Box_advanced)
+        self.Button_next.setGeometry(QtCore.QRect(390, 710, 90, 32))
+        self.Button_next.setObjectName("Button_next")
+
+        self.Box_advanced.setVisible(False)
+
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Buttons +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+        self.Button_advanced = QtWidgets.QPushButton(self)
+        self.Button_advanced.setGeometry(QtCore.QRect(10, 770, 141, 32))
+        self.Button_advanced.setObjectName("Button_advanced")
         self.Button_open = QtWidgets.QPushButton(self)
-        self.Button_open.setGeometry(QtCore.QRect(10, 770, 141, 32))
+        self.Button_open.setGeometry(QtCore.QRect(660, 770, 141, 32))
         self.Button_open.setObjectName("Button_open")
         self.Button_saveWallpaper = QtWidgets.QPushButton(self)
-        self.Button_saveWallpaper.setGeometry(QtCore.QRect(160, 770, 141, 32))
+        self.Button_saveWallpaper.setGeometry(QtCore.QRect(810, 770, 141, 32))
         self.Button_saveWallpaper.setObjectName("Button_saveWallpaper")
         self.Button_about = QtWidgets.QPushButton(self)
-        self.Button_about.setGeometry(QtCore.QRect(585, 770, 141, 32))
+        self.Button_about.setGeometry(QtCore.QRect(985, 770, 141, 32))
         self.Button_about.setObjectName("Button_about")
         self.Button_quit = QtWidgets.QPushButton(self)
         self.Button_quit.setGeometry(QtCore.QRect(1160, 770, 141, 32))
         self.Button_quit.setObjectName("Button_quit")
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Setting Text, etc. ++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+        self.Button_openDir.setText("Select Folder")
+        self.Button_fastSave.setText("FastSave")
+        self.Button_next.setText("Next >")
+        self.Button_prev.setText("< Prev")
+        self.Box_advanced.setTitle("Files")
         self.Box_original.setTitle("Original")
-        self.original.setText("")
         self.Box_wallpaper.setTitle("Result")
-        self.wallpaper.setText("")
+        self.Box_options.setTitle("Settings")
         self.Box_info.setTitle("Information")
+        self.original.setText("")
+        self.wallpaper.setText("")
+        self.Button_advanced.setText("<< Advanced")
         self.Button_open.setText("Open")
         self.Button_refresh.setText("Refresh")
-        self.Button_saveWallpaper.setText("Save")
+        self.Button_saveWallpaper.setText("Save as")
         self.Button_about.setText("About")
         self.Button_quit.setText("Quit")
-        self.Box_options.setTitle("Settings")
         self.radio_fullHD.setText("FullHD - 16:9 - 1920x1080px")
         self.radio_dual.setText("Dual Monitor - FullHD - 32:9 - 3840x1080px")
         self.radio_custom.setText("Custom size")
@@ -344,8 +416,10 @@ class WallpaperCutter(QtWidgets.QMainWindow):
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Signals & Slots +++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
+        self.Button_openDir.clicked.connect(self.open_Folder)
         self.Button_quit.clicked.connect(self.close)
         self.Button_saveWallpaper.clicked.connect(self.save_pic)
+        self.Button_advanced.clicked.connect(self.set_advanced)
         self.Button_open.clicked.connect(self.open_pic)
         self.Button_refresh.clicked.connect(self.refresh)
         self.Button_about.clicked.connect(self.showAbout)
@@ -359,8 +433,14 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.radio_dual.toggled.connect(self.set_dual)
         self.radio_custom.toggled.connect(self.set_custom)
         self.checkBox_dualMonitor.stateChanged.connect(self.set_custom)
+        self.directories.clicked.connect(self.on_treeviewClicked)
+        self.files.clicked.connect(self.on_listviewClicked)
+        self.Button_fastSave.clicked.connect(self.FaseSave)
+        self.Button_next.clicked.connect(self.set_Next)
+        self.Button_prev.clicked.connect(self.set_Prev)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Initialize ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
         self.show()
         if len(sys.argv) == 2:
             filename = sys.argv[1]
@@ -369,11 +449,14 @@ class WallpaperCutter(QtWidgets.QMainWindow):
                 self.set_image()
                 self.set_original()
                 self.show_original()
+        self.size_monitors.setText('59.7')
+        self.size_gap.setText('4.0')
         self.set_fullHD()
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : Set Image +++++++++++++++++++++++++++++++++++++++++++++++++++ #
     def set_image(self):
         self.pixmap = QtGui.QPixmap(self.image)
+        self.setWindowTitle('b-Trim  -  '+str(Path(self.image).name)+'  -  ©2020 Alexander Mielke')
 
     def refresh_settings(self):
         self.dualx, self.dualy, self. dualspan, self.dualgpx = 0, 0, 0, 0
@@ -389,8 +472,129 @@ class WallpaperCutter(QtWidgets.QMainWindow):
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : File Dialogs /About +++++++++++++++++++++++++++++++++++++++++ #
 
+    def set_advanced(self):
+        if not self.isAdvanced:
+            self.resize(1812, 810)
+            self.Box_original.setGeometry(QtCore.QRect(510, 10, 641, 451))
+            self.Box_wallpaper.setGeometry(QtCore.QRect(1160, 10, 641, 451))
+            self.Box_info.setGeometry(QtCore.QRect(1160, 470, 641, 291))
+            self.Box_options.setGeometry(QtCore.QRect(510, 470, 641, 291))
+            self.Button_advanced.setGeometry(QtCore.QRect(10, 770, 141, 32))
+            self.Button_open.setGeometry(QtCore.QRect(1160, 770, 141, 32))
+            self.Button_saveWallpaper.setGeometry(QtCore.QRect(1310, 770, 141, 32))
+            self.Button_about.setGeometry(QtCore.QRect(1485, 770, 141, 32))
+            self.Button_quit.setGeometry(QtCore.QRect(1660, 770, 141, 32))
+            self.isAdvanced = True
+            self.Button_advanced.setText("Advanced >>")
+            self.Box_advanced.setVisible(True)
+
+        else:
+            self.resize(1312, 810)
+            self.Box_original.setGeometry(QtCore.QRect(10, 10, 641, 451))
+            self.Box_wallpaper.setGeometry(QtCore.QRect(660, 10, 641, 451))
+            self.Box_info.setGeometry(QtCore.QRect(660, 470, 641, 291))
+            self.Box_options.setGeometry(QtCore.QRect(10, 470, 641, 291))
+            self.Button_advanced.setGeometry(QtCore.QRect(10, 770, 141, 32))
+            self.Button_open.setGeometry(QtCore.QRect(660, 770, 141, 32))
+            self.Button_saveWallpaper.setGeometry(QtCore.QRect(810, 770, 141, 32))
+            self.Button_about.setGeometry(QtCore.QRect(985, 770, 141, 32))
+            self.Button_quit.setGeometry(QtCore.QRect(1160, 770, 141, 32))
+            self.isAdvanced = False
+            self.Button_advanced.setText("<< Advanced")
+            self.Box_advanced.setVisible(False)
+
+    def on_treeviewClicked(self, index):
+        path = self.dirModel.fileInfo(index).absoluteFilePath()
+        p = Path(path).glob('*.*')
+        files = [x for x in p if (x.is_file()) and (x.suffix in ['.jpg', '.png', '.bmp', '.jpeg', '.gif', '.pbm', '.pgm', '.ppm', '.xbm', '.xpm'])]
+        self.files.clear()
+        self.fileList = []
+        for file in files:
+            self.fileList.append(str(file))
+        self.fileList.sort(key=str.casefold)
+        self.refresh_listview()
+        self.fileIndex = -10 if len(self.fileList) == 0 else -1
+
+    def on_listviewClicked(self, index):
+        self.image = str(self.fileList[index.row()])
+        self.refresh_settings()
+        self.set_image()
+        self.set_original()
+        self.show_original()
+        self.refresh()
+        self.last_dir = str(Path(self.image).parent)
+        self.fileIndex = index.row()
+
+    def refresh_listview(self):
+        self.files.clear()
+        for file in self.fileList:
+            if file in self.workedList:
+                item = QtWidgets.QListWidgetItem(str(Path(file).name))
+                font = QtGui.QFont()
+                font.setStyle(QtGui.QFont.StyleItalic)
+                font.setBold(True)
+                item.setFont(font)
+                item.setForeground(QtGui.QBrush(QtGui.QColor(52, 203, 60)))
+                self.files.addItem(item)
+            else:
+                self.files.addItem(QtWidgets.QListWidgetItem(str(Path(file).name)))
+
+    def set_Next(self):
+        if self.fileIndex >= -1 and self.fileIndex < len(self.fileList)-1:
+            self.fileIndex += 1
+            self.files.setCurrentRow(self.fileIndex)
+            self.image = str(self.fileList[self.fileIndex])
+            self.refresh_settings()
+            self.set_image()
+            self.set_original()
+            self.show_original()
+            self.refresh()
+            self.last_dir = str(Path(self.image).parent)
+
+    def set_Prev(self):
+        if self.fileIndex > 0:
+            self.fileIndex -= 1
+            self.files.setCurrentRow(self.fileIndex)
+            self.image = str(self.fileList[self.fileIndex])
+            self.refresh_settings()
+            self.set_image()
+            self.set_original()
+            self.show_original()
+            self.refresh()
+            self.last_dir = str(Path(self.image).parent)
+
     def showAbout(self):
         about.show()
+
+    def open_Folder(self):
+        dir = self.last_dir if self.last_dir != '' else str(Path.cwd())
+        foldername = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open FastSave Folder', dir, options=QtWidgets.QFileDialog.ShowDirsOnly)
+        fname = str(foldername)
+        if fname != '':
+            self.saveDir.setText(fname)
+            self.last_dir = fname
+
+    def FaseSave(self):
+        if self.new_pic:
+            foldername = str(Path(self.image).parent) if not Path(self.saveDir.text()).is_dir() else str(Path(self.saveDir.text()))
+            foldername += '/'
+            filename = str(Path(self.image).name)
+            filename = '(cut) '+filename
+            savename = foldername+filename
+            img_format = str(Path(self.image).suffix).upper()
+            img_format = img_format[1:]
+            try:
+                #                self.new_pic.save(savename, img_format)
+                self.workedList.append(self.image)
+                self.refresh_listview()
+                self.files.setCurrentRow(self.fileIndex)
+            except:
+                msg = QtWidgets.QMessageBox()
+                msg.setIcon(QtWidgets.QMessageBox.Critical)
+                msg.setWindowTitle("Error: Could not save file!")
+                msg.setText(str(sys.exc_info()))
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                dummie = msg.exec_()
 
     def open_pic(self):
         dir = self.last_dir if self.last_dir != '' else str(Path.cwd())
@@ -416,46 +620,54 @@ class WallpaperCutter(QtWidgets.QMainWindow):
                 self.image = ''
 
     def save_pic(self):
-        dir = self.last_dir if self.last_dir != '' else str(Path.cwd())
-        filter = 'Windows Bitmap (*.bmp);;Joint Photographic Experts Group (*.jpg);;Joint Photographic Experts Group (*.jpeg);;Portable Network Graphics (*.png);;Portable Pixmap (*.ppm);;X11 Bitmap (*.xbm);;X11 Bitmap (*.xpm)'
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Einkaufszettel speichern...', dir, filter, 'Joint Photographic Experts Group (*.jpg)')
-        fname = filename[0]
-        if fname:
-            if 'bmp' in filename[1]:
-                img_format = 'BMP'
-            if 'jpg' in filename[1]:
-                img_format = 'JPG'
-            if 'jpeg' in filename[1]:
-                img_format = 'JPEG'
-            if 'png' in filename[1]:
-                img_format = 'PNG'
-            if 'ppm' in filename[1]:
-                img_format = 'PPM'
-            if 'xbm' in filename[1]:
-                img_format = 'XBM'
-            if 'xpm' in filename[1]:
-                img_format = 'XPM'
-            ending = '.' + img_format.lower()
-            dummy = Path(fname)
-            if dummy.suffix != ending:
-                fname += ending
-            try:
-                self.new_pic.save(fname, img_format)
-                self.last_dir = str(dummy.parent)
-            except:
-                msg = QtWidgets.QMessageBox()
-                msg.setIcon(QtWidgets.QMessageBox.Critical)
-                msg.setWindowTitle("Error: Could not save file!")
-                msg.setText(str(sys.exc_info()))
-                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                dummie = msg.exec_()
-                self.last_dir = ''
+        if self.new_pic:
+            dir = self.last_dir if self.last_dir != '' else str(Path.cwd())
+            filter = 'Windows Bitmap (*.bmp);;Joint Photographic Experts Group (*.jpg);;Joint Photographic Experts Group (*.jpeg);;Portable Network Graphics (*.png);;Portable Pixmap (*.ppm);;X11 Bitmap (*.xbm);;X11 Bitmap (*.xpm)'
+            filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Einkaufszettel speichern...', dir, filter, 'Joint Photographic Experts Group (*.jpg)')
+            fname = filename[0]
+            if fname:
+                if 'bmp' in filename[1]:
+                    img_format = 'BMP'
+                if 'jpg' in filename[1]:
+                    img_format = 'JPG'
+                if 'jpeg' in filename[1]:
+                    img_format = 'JPEG'
+                if 'png' in filename[1]:
+                    img_format = 'PNG'
+                if 'ppm' in filename[1]:
+                    img_format = 'PPM'
+                if 'xbm' in filename[1]:
+                    img_format = 'XBM'
+                if 'xpm' in filename[1]:
+                    img_format = 'XPM'
+                ending = '.' + img_format.lower()
+                dummy = Path(fname)
+                if dummy.suffix != ending:
+                    fname += ending
+                try:
+                    self.new_pic.save(fname, img_format)
+                    self.last_dir = str(dummy.parent)
+                except:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setIcon(QtWidgets.QMessageBox.Critical)
+                    msg.setWindowTitle("Error: Could not save file!")
+                    msg.setText(str(sys.exc_info()))
+                    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                    dummie = msg.exec_()
+                    self.last_dir = ''
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Methods : Mouse Events ++++++++++++++++++++++++++++++++++++++++++++++++ #
 
+
     def mouseMoveEvent(self, event):
         if event.buttons() == QtCore.Qt.RightButton and self.image != '':
-            if (event.x() >= self.dim.startx+10) and (event.x() <= self.dim.startx+10+self.dim.width) and (event.y() >= self.dim.starty+30) and (event.y() <= self.dim.starty+30+self.dim.height):
+            leftx = self.dim.startx+510 if self.isAdvanced else self.dim.startx+10
+            rightx = self.dim.startx+510+self.dim.width if self.isAdvanced else self.dim.startx+10+self.dim.width
+            topy = self.dim.starty+30
+            bottomy = self.dim.starty+30+self.dim.height
+
+            if (event.x() in range(leftx, rightx)) and (event.y() in range(topy, bottomy)):
                 self.rec.startx = int(self.rec.startx + (event.x()-self.lastx-self.dim.startx*2)*self.difx)
                 self.rec.starty = int(self.rec.starty + (event.y()-self.lasty-self.dim.starty*2)*self.dify)
                 if self.rec.startx < 0:
@@ -487,6 +699,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.show_information()
 
     def set_fullHD(self):
+        self.new_pic = None
         self.label_gap.setVisible(False)
         self.label_mon1.setVisible(False)
         self.size_monitors.setVisible(False)
@@ -507,6 +720,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.show_information()
 
     def set_dual(self):
+        self.new_pic = None
         self.label_gap.setVisible(True)
         self.label_mon1.setVisible(True)
         self.size_monitors.setVisible(True)
@@ -527,6 +741,7 @@ class WallpaperCutter(QtWidgets.QMainWindow):
         self.show_information()
 
     def set_custom(self):
+        self.new_pic = None
         if self.radio_custom.isChecked():
             self.custom.setVisible(True)
             self.label_pix.setVisible(True)
@@ -929,10 +1144,10 @@ class AboutDialog(QtWidgets.QDialog):
                                  "<p style=\" text-align: center;font-size:14px;\">Written in Python 3.8.6 <br />with PyQt5 (5.15.1)<br />as only 3rd party module</p>\n"
                                  "<p style=\" text-align: center;font-size:14px;\">Other modules used: sys, math, pathlib</p>\n"
                                  "<p style=\" text-align: center;font-size:14px;\">(c) 2020 Alexander Mielke (<a href=\"mailto:alexandermielke@t-online.de\"><span style=\" text-decoration: underline; color:#2eb8e6;\">alexandermielke@t-online.de</span></a>)</p>\n"
-                                 "<p style=\" text-align: center;font-size:14px;\"><a href=\"https://github.com/AlexMielke/WallpaperCutter\"><span style=\" text-decoration: underline; color:#2eb8e6;\">GitHub-Repository</span></a></p>\n"
+                                 "<p style=\" text-align: center;font-size:14px;\"><a href=\"https://github.com/AlexMielke/bTrim\"><span style=\" text-decoration: underline; color:#2eb8e6;\">GitHub-Repository</span></a></p>\n"
                                  "<p style=\" text-align: center;font-size:12px;\">Licence MIT Licence (see Licence file)</p></body></html>")
         self.setWindowTitle(QtCore.QCoreApplication.translate("self", "About"))
-        self.label.setText(QtCore.QCoreApplication.translate("self", "wallpaperCutter"))
+        self.label.setText(QtCore.QCoreApplication.translate("self", "bTrim"))
         self.buttonBox.accepted.connect(self.close)
         QtCore.QMetaObject.connectSlotsByName(self)
 
@@ -941,9 +1156,9 @@ class AboutDialog(QtWidgets.QDialog):
 if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
-    app.setStyle('Fusion')
-    darkmode()
-    ui = WallpaperCutter()
+    # app.setStyle('Fusion')
+    # darkmode()
+    ui = bTrim()
     about = AboutDialog()
 
     sys.exit(app.exec_())
